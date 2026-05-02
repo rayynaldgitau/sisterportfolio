@@ -358,54 +358,195 @@ function ReelSection() {
 }
 
 /* ─── Works ─────────────────────────────────────────────────────────── */
+/* ─── WorkItemCard (owns its own useUpload hook per card) ───────────── */
+function WorkItemCard({
+  work,
+  index,
+  onChange,
+  onRemove,
+}: {
+  work: WorkItem;
+  index: number;
+  onChange: (updated: WorkItem) => void;
+  onRemove: () => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const { uploadFile, isUploading, progress, error } = useUpload({
+    onSuccess: (res) => onChange({ ...work, imageObjectPath: res.objectPath }),
+  });
+
+  const imageUrl = work.imageObjectPath ? `/api/storage${work.imageObjectPath}` : null;
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await uploadFile(file);
+    e.target.value = "";
+  };
+
+  const set = (field: keyof WorkItem, value: string) => {
+    if (field === "gradient") {
+      const g = GRADIENTS.find((g) => g.value === value);
+      onChange({ ...work, gradient: value, accent: g?.accent ?? work.accent });
+    } else {
+      onChange({ ...work, [field]: value });
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border/30 bg-secondary/10 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/20">
+        <span className="text-xs text-muted-foreground font-mono">Work #{index + 1}</span>
+        <button
+          onClick={onRemove}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:text-red-400 hover:bg-red-400/10 transition-all"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Image Upload Zone */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground uppercase tracking-widest">Artwork Image</span>
+            {imageUrl && (
+              <button
+                onClick={() => onChange({ ...work, imageObjectPath: undefined })}
+                className="text-xs text-red-400/60 hover:text-red-400 transition-colors"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={isUploading}
+            className={`relative w-full rounded-xl overflow-hidden border transition-all ${
+              imageUrl
+                ? "border-border/30 h-40"
+                : "border-dashed border-border/40 h-32 hover:border-primary/40 hover:bg-primary/5"
+            }`}
+          >
+            {imageUrl ? (
+              <>
+                <img src={imageUrl} alt={work.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs">
+                  <Upload className="w-4 h-4" />
+                  Replace image
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground/40 h-full">
+                <Image className="w-8 h-8" />
+                <span className="text-xs">Click to upload artwork</span>
+                <span className="text-xs opacity-60">JPG, PNG, WebP</span>
+              </div>
+            )}
+            {isUploading && (
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
+                <div className="w-32 h-1.5 rounded-full bg-white/20 overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <span className="text-xs text-white/70">Uploading…</span>
+              </div>
+            )}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          {error && <p className="text-xs text-red-400">{error.message}</p>}
+        </div>
+
+        {/* Title & Type */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="block">
+            <span className="text-xs text-muted-foreground mb-1 block">Title</span>
+            <input value={work.title} onChange={(e) => set("title", e.target.value)} className="field" />
+          </label>
+          <label className="block">
+            <span className="text-xs text-muted-foreground mb-1 block">Type / Category</span>
+            <input value={work.type} onChange={(e) => set("type", e.target.value)} className="field" placeholder="e.g. Character Design" />
+          </label>
+        </div>
+
+        {/* Description */}
+        <label className="block">
+          <span className="text-xs text-muted-foreground mb-1 block">Description</span>
+          <textarea
+            value={work.description ?? ""}
+            onChange={(e) => set("description", e.target.value)}
+            rows={2}
+            className="field resize-none"
+            placeholder="Short description shown on hover…"
+          />
+        </label>
+
+        {/* Gradient fallback */}
+        <label className="block">
+          <span className="text-xs text-muted-foreground mb-1 block">
+            Colour Theme <span className="opacity-50">(used when no image is uploaded)</span>
+          </span>
+          <select value={work.gradient} onChange={(e) => set("gradient", e.target.value)} className="field text-muted-foreground">
+            {GRADIENTS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+          </select>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function WorksSection() {
   const [works, setWorks] = useState<WorkItem[]>(() => load(KEYS.WORKS, DEFAULTS.WORKS));
   const { saved, flash } = useSaved();
-  const update = (id: string, field: keyof WorkItem, value: string) => {
-    setWorks((prev) => prev.map((w) => {
-      if (w.id !== id) return w;
-      if (field === "gradient") {
-        const g = GRADIENTS.find((g) => g.value === value);
-        return { ...w, gradient: value, accent: g?.accent ?? w.accent };
-      }
-      return { ...w, [field]: value };
-    }));
-  };
-  const addWork = () => setWorks((prev) => [...prev, { id: Date.now().toString(), title: "New Work", type: "Concept Art", gradient: GRADIENTS[0].value, accent: GRADIENTS[0].accent }]);
+
+  const handleChange = (id: string, updated: WorkItem) =>
+    setWorks((prev) => prev.map((w) => (w.id === id ? updated : w)));
+  const addWork = () =>
+    setWorks((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        title: "New Work",
+        type: "Concept Art",
+        gradient: GRADIENTS[0].value,
+        accent: GRADIENTS[0].accent,
+        description: "",
+      },
+    ]);
   const removeWork = (id: string) => setWorks((prev) => prev.filter((w) => w.id !== id));
   const handleSave = () => { save(KEYS.WORKS, works); flash(); };
+
   return (
     <SectionCard title="Selected Works" defaultOpen={false}>
+      <p className="text-sm text-muted-foreground -mt-1">
+        Upload artwork images for each card. Title, type, and description appear on hover. If no image is uploaded, the colour theme gradient is used instead.
+      </p>
       <div className="space-y-4">
         {works.map((work, i) => (
-          <div key={work.id} className="p-4 rounded-xl border border-border/30 bg-secondary/10 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground font-mono">Work #{i + 1}</span>
-              <button onClick={() => removeWork(work.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:text-red-400 hover:bg-red-400/10 transition-all">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="block">
-                <span className="text-xs text-muted-foreground mb-1 block">Title</span>
-                <input value={work.title} onChange={(e) => update(work.id, "title", e.target.value)} className="field" />
-              </label>
-              <label className="block">
-                <span className="text-xs text-muted-foreground mb-1 block">Type</span>
-                <input value={work.type} onChange={(e) => update(work.id, "type", e.target.value)} className="field" placeholder="e.g. Character Design" />
-              </label>
-            </div>
-            <label className="block">
-              <span className="text-xs text-muted-foreground mb-1 block">Colour Theme</span>
-              <select value={work.gradient} onChange={(e) => update(work.id, "gradient", e.target.value)} className="field text-muted-foreground">
-                {GRADIENTS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
-              </select>
-            </label>
-          </div>
+          <WorkItemCard
+            key={work.id}
+            work={work}
+            index={i}
+            onChange={(updated) => handleChange(work.id, updated)}
+            onRemove={() => removeWork(work.id)}
+          />
         ))}
       </div>
-      <button onClick={addWork} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm hover:bg-primary/20 transition-all">
-        <Plus className="w-4 h-4" />Add Work
+      <button
+        onClick={addWork}
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm hover:bg-primary/20 transition-all"
+      >
+        <Plus className="w-4 h-4" /> Add Work
       </button>
       <SaveRow onSave={handleSave} saved={saved} />
     </SectionCard>

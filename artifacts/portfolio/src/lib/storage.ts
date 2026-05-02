@@ -51,6 +51,8 @@ export interface WorkItem {
   type: string;
   gradient: string;
   accent: string;
+  imageObjectPath?: string;
+  description?: string;
 }
 
 export interface ExperienceEntry {

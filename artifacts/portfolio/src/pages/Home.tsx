@@ -262,22 +262,50 @@ export default function Home() {
             Selected Works
           </motion.h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {works.map((item, index) => (
-              <motion.div key={item.id} initial={{ opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }} transition={{ delay: index * 0.08, duration: 0.5 }}
-                className={`relative overflow-hidden rounded-xl group h-52 sm:h-64 bg-gradient-to-br ${item.gradient} border border-white/5`}
-                data-testid={`portfolio-item-${index}`}>
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_40%,rgba(255,255,255,0.15)_0%,transparent_60%)]" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-5 group-hover:opacity-0 transition-opacity duration-500">
-                  <Brush className={`w-10 h-10 sm:w-12 sm:h-12 mb-3 ${item.accent} opacity-60`} />
-                  <span className={`font-serif text-xl sm:text-2xl ${item.accent} opacity-80 text-center`}>{item.title}</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5 sm:p-6">
-                  <span className={`font-serif text-xl sm:text-2xl ${item.accent}`}>{item.title}</span>
-                  <span className="text-sm text-white/70 mt-1">{item.type}</span>
-                </div>
-              </motion.div>
-            ))}
+            {works.map((item, index) => {
+              const hasImage = Boolean(item.imageObjectPath);
+              const imageUrl = hasImage ? `/api/storage${item.imageObjectPath}` : null;
+              return (
+                <motion.div key={item.id} initial={{ opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }} transition={{ delay: index * 0.08, duration: 0.5 }}
+                  className={`relative overflow-hidden rounded-xl group h-52 sm:h-64 border border-white/5 ${
+                    hasImage ? "bg-black" : `bg-gradient-to-br ${item.gradient}`
+                  }`}
+                  data-testid={`portfolio-item-${index}`}>
+
+                  {/* Actual artwork image */}
+                  {imageUrl && (
+                    <img
+                      src={imageUrl}
+                      alt={item.title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  )}
+
+                  {/* Gradient shimmer overlay (no-image mode only) */}
+                  {!hasImage && (
+                    <>
+                      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_40%,rgba(255,255,255,0.15)_0%,transparent_60%)]" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-5 group-hover:opacity-0 transition-opacity duration-500">
+                        <Brush className={`w-10 h-10 sm:w-12 sm:h-12 mb-3 ${item.accent} opacity-60`} />
+                        <span className={`font-serif text-xl sm:text-2xl ${item.accent} opacity-80 text-center`}>{item.title}</span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Hover overlay — title, type, description */}
+                  <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-500 flex flex-col justify-end p-5 sm:p-6 ${
+                    hasImage ? "opacity-0 group-hover:opacity-100" : "opacity-0 group-hover:opacity-100"
+                  }`}>
+                    <span className={`font-serif text-xl sm:text-2xl ${item.accent} drop-shadow`}>{item.title}</span>
+                    <span className="text-sm text-white/70 mt-0.5">{item.type}</span>
+                    {item.description && (
+                      <p className="text-xs text-white/50 mt-1.5 line-clamp-2 leading-relaxed">{item.description}</p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
