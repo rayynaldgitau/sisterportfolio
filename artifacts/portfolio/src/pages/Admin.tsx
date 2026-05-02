@@ -8,8 +8,10 @@ import { Link } from "wouter";
 import AdminLogin from "../components/AdminLogin";
 import {
   KEYS, DEFAULTS, load, save, isAdminAuthed, setAdminAuthed,
+  getWorkSections, SECTION_ORDER,
   type HeroData, type AboutData, type ContactData,
   type CommissionTier, type WorkItem, type ExperienceEntry, type Skill,
+  type WorkSectionType, type WorkSection,
 } from "../lib/storage";
 
 const CATEGORIES = ["Design", "Illustration", "Animation", "3D", "Video", "Other"];
@@ -358,6 +360,151 @@ function ReelSection() {
 }
 
 /* ─── Works ─────────────────────────────────────────────────────────── */
+
+const SECTION_LABELS: Record<WorkSectionType, string> = {
+  storyboard: "Storyboard",
+  research:   "Research",
+  visuals:    "Visual Representations",
+  thumbnails: "Thumbnails",
+  layout:     "Layout & Design",
+};
+
+/* Upload zone for multiple images inside a single section */
+function SectionImageUpload({
+  paths,
+  onAdd,
+  onRemove,
+}: {
+  paths: string[];
+  onAdd: (path: string) => void;
+  onRemove: (path: string) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [localBusy, setLocalBusy] = useState(false);
+  const { uploadFile } = useUpload({
+    onSuccess: (res: UploadResponse) => onAdd(res.objectPath),
+  });
+
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setLocalBusy(true);
+    for (const file of files) {
+      await uploadFile(file);
+    }
+    setLocalBusy(false);
+    e.target.value = "";
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {paths.map((p) => (
+          <div
+            key={p}
+            className="relative w-20 h-20 rounded-lg overflow-hidden border border-border/30 group shrink-0"
+          >
+            <img src={`/api/storage${p}`} alt="" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onRemove(p)}
+              className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={localBusy}
+          className="w-20 h-20 rounded-lg border border-dashed border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-1 text-muted-foreground/40 shrink-0 disabled:opacity-50"
+        >
+          {localBusy ? (
+            <span className="text-[10px]">Uploading…</span>
+          ) : (
+            <>
+              <Plus className="w-4 h-4" />
+              <span className="text-[10px]">Add</span>
+            </>
+          )}
+        </button>
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFiles}
+      />
+    </div>
+  );
+}
+
+/* Collapsible editor for a single project section */
+function WorkSectionEditor({
+  section,
+  onChange,
+}: {
+  section: { type: WorkSectionType; description: string; images: string[] };
+  onChange: (updated: WorkSection) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const hasContent = Boolean(section.description || section.images.length);
+
+  return (
+    <div className="rounded-lg border border-border/20 overflow-hidden bg-background/30">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/5 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-foreground/80">{SECTION_LABELS[section.type]}</span>
+          {hasContent && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
+          {section.images.length > 0 && (
+            <span className="text-xs text-muted-foreground/40">
+              {section.images.length} image{section.images.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        {open ? (
+          <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+        )}
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-3 border-t border-border/20 pt-3">
+          <label className="block">
+            <span className="text-xs text-muted-foreground mb-1 block">Description</span>
+            <textarea
+              value={section.description}
+              onChange={(e) => onChange({ ...section, description: e.target.value })}
+              rows={2}
+              className="field resize-none text-sm"
+              placeholder="Describe this section…"
+            />
+          </label>
+          <div>
+            <span className="text-xs text-muted-foreground mb-2 block">
+              Images <span className="opacity-50">(select multiple at once)</span>
+            </span>
+            <SectionImageUpload
+              paths={section.images}
+              onAdd={(path) => onChange({ ...section, images: [...section.images, path] })}
+              onRemove={(path) =>
+                onChange({ ...section, images: section.images.filter((p) => p !== path) })
+              }
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── WorkItemCard (owns its own useUpload hook per card) ───────────── */
 function WorkItemCard({
   work,
@@ -500,6 +647,33 @@ function WorkItemCard({
             {GRADIENTS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
           </select>
         </label>
+
+        {/* Project Sections */}
+        <div className="space-y-2 pt-1 border-t border-border/20">
+          <div>
+            <span className="text-xs text-muted-foreground uppercase tracking-widest block mb-0.5">
+              Project Sections
+            </span>
+            <span className="text-xs text-muted-foreground/40">
+              Visitors see these when they click this card — add storyboards, research, artwork, thumbnails, and layout studies.
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            {getWorkSections(work).map((section) => (
+              <WorkSectionEditor
+                key={section.type}
+                section={section}
+                onChange={(updated) => {
+                  const current = getWorkSections(work);
+                  const newSections = current.map((s) =>
+                    s.type === updated.type ? updated : s
+                  );
+                  onChange({ ...work, sections: newSections });
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -45,6 +45,24 @@ export interface CommissionTier {
   accent: string;
 }
 
+export type WorkSectionType = "storyboard" | "research" | "visuals" | "thumbnails" | "layout";
+
+export interface WorkSection {
+  type: WorkSectionType;
+  description: string;
+  images: string[];
+}
+
+export const SECTION_ORDER: WorkSectionType[] = ["storyboard", "research", "visuals", "thumbnails", "layout"];
+
+export function getWorkSections(work: WorkItem): WorkSection[] {
+  return SECTION_ORDER.map(
+    (type) =>
+      (work.sections ?? []).find((s) => s.type === type) ??
+      { type, description: "", images: [] }
+  );
+}
+
 export interface WorkItem {
   id: string;
   title: string;
@@ -53,6 +71,7 @@ export interface WorkItem {
   accent: string;
   imageObjectPath?: string;
   description?: string;
+  sections?: WorkSection[];
 }
 
 export interface ExperienceEntry {
