@@ -83,7 +83,7 @@ export default function AdminLogin({ onSuccess }: Props) {
         </motion.form>
 
         <p className="text-center text-xs text-muted-foreground/30 mt-8">
-          Portfolio of Tran Phuong Thao
+          Portfolio of Emmarantia
         </p>
       </motion.div>
     </div>

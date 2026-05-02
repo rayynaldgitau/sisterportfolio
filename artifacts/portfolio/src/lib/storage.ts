@@ -73,13 +73,13 @@ export interface Skill {
 
 export const DEFAULTS = {
   HERO: {
-    name: "Tran Phuong Thao",
+    name: "Emmarantia",
     subtitle: "Concept Artist & 2D Animator",
     tagline: "Portfolio · 2025",
   } as HeroData,
 
   ABOUT: {
-    bio1: "My name is Tran Phuong Thao, a 2D Concept & Animation artist, passionate about creating whimsical fantasy worlds and stories.",
+    bio1: "My name is Emmarantia, a 2D Concept & Animation artist, passionate about creating whimsical fantasy worlds and stories.",
     bio2: "My strengths are Character and Background Concept Design, 2D Animation and Illustration. I aspire to create and develop new ideas and always ready to collaborate effectively with team, study, self-evaluate, and continuously improve my skills.",
     gender: "Female",
     dob: "03.03.2002",
