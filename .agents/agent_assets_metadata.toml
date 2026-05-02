@@ -1,0 +1,44 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "EhyO4aW1TK502v1ENgxip"
+uri = "file://artifacts/portfolio/public/images/work1.png"
+type = "image"
+title = "Fantasy character illustration"
+
+[[generated]]
+id = "m-f7DMHzGgZ-eHeg8jA5E"
+uri = "file://artifacts/portfolio/public/images/work2.png"
+type = "image"
+title = "Concept art landscape"
+
+[[generated]]
+id = "Cav6ELdbGRmRlx8ST4-O4"
+uri = "file://artifacts/portfolio/public/images/work3.png"
+type = "image"
+title = "Whimsical creature design"
+
+[[generated]]
+id = "Kn0OTT7eJFBsW5HC6CSsb"
+uri = "file://artifacts/portfolio/public/images/work4.png"
+type = "image"
+title = "Fantasy weapon prop design"
+
+[[generated]]
+id = "PF8Jd7RVE-m3Kf8gr9EdK"
+uri = "file://artifacts/portfolio/public/images/work5.png"
+type = "image"
+title = "Fantasy portrait concept"
+
+[[generated]]
+id = "PaegT2Q2jGwl_-aYVRlYR"
+uri = "file://artifacts/portfolio/public/images/work6.png"
+type = "image"
+title = "Magical potion design"
+
+[[generated]]
+id = "yZyl6avAdp45o_ABfNqzf"
+uri = "file://attached_assets/generated_images/generated_image.png"
+type = "image"
+title = "generated_image"
