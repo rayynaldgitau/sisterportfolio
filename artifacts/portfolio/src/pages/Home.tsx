@@ -1,11 +1,26 @@
+import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { PenTool, Mail, Phone, Facebook, Instagram, Layers, Brush, Wand2, Camera } from "lucide-react";
+import { PenTool, Mail, Phone, Facebook, Instagram, Layers, Brush, Wand2, Camera, Settings } from "lucide-react";
+import { Link } from "wouter";
 import coverImg from "@assets/WhatsApp_Image_2026-05-02_at_11.15.25_PM_1777752987759.jpeg";
 import resumeImg from "@assets/WhatsApp_Image_2026-05-02_at_11.15.25_PM_(1)_1777752987758.jpeg";
+
+const PROFILE_PIC_KEY = "portfolio_profile_pic_path";
 
 export default function Home() {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
+  const [profilePicPath, setProfilePicPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(PROFILE_PIC_KEY);
+    if (saved) setProfilePicPath(saved);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === PROFILE_PIC_KEY) setProfilePicPath(e.newValue);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -113,7 +128,12 @@ export default function Home() {
               className="relative"
             >
               <div className="absolute -inset-4 bg-primary/10 rounded-2xl blur-2xl z-0" />
-              <img src={resumeImg} alt="Tran Phuong Thao" className="relative z-10 rounded-xl shadow-2xl border border-border/50 w-full object-cover" />
+              <img
+                src={profilePicPath ? `/api/storage${profilePicPath}` : resumeImg}
+                alt="Tran Phuong Thao"
+                className="relative z-10 rounded-xl shadow-2xl border border-border/50 w-full object-cover"
+                data-testid="about-profile-image"
+              />
             </motion.div>
           </div>
         </div>
@@ -283,6 +303,10 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-8 border-t border-border/50 text-center text-sm text-muted-foreground bg-background">
         <p>&copy; 2025 Tran Phuong Thao. All rights reserved.</p>
+        <Link href="/admin" className="inline-flex items-center gap-1.5 mt-3 text-xs text-muted-foreground/40 hover:text-primary/60 transition-colors" data-testid="admin-link">
+          <Settings className="w-3 h-3" />
+          Admin
+        </Link>
       </footer>
     </div>
   );
