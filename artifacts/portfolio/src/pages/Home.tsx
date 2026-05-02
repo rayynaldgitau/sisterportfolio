@@ -6,17 +6,58 @@ import coverImg from "@assets/WhatsApp_Image_2026-05-02_at_11.15.25_PM_177775298
 import resumeImg from "@assets/WhatsApp_Image_2026-05-02_at_11.15.25_PM_(1)_1777752987758.jpeg";
 
 const PROFILE_PIC_KEY = "portfolio_profile_pic_path";
+const SKILLS_KEY = "portfolio_skills";
+
+interface Skill {
+  id: string;
+  name: string;
+  label: string;
+  category: string;
+}
+
+const DEFAULT_SKILLS: Skill[] = [
+  { id: "1", name: "Photoshop", label: "Ps", category: "Design" },
+  { id: "2", name: "Clip Studio Paint", label: "Cs", category: "Illustration" },
+  { id: "3", name: "After Effects", label: "Ae", category: "Animation" },
+  { id: "4", name: "Illustrator", label: "Ai", category: "Design" },
+  { id: "5", name: "Procreate", label: "Pr", category: "Illustration" },
+];
+
+function loadSkills(): Skill[] {
+  try {
+    const raw = localStorage.getItem(SKILLS_KEY);
+    if (raw) return JSON.parse(raw) as Skill[];
+  } catch {}
+  return DEFAULT_SKILLS;
+}
+
+const CATEGORY_ICONS: Record<string, typeof Brush> = {
+  Design: Camera,
+  Illustration: PenTool,
+  Animation: Layers,
+  "3D": Wand2,
+  Video: Layers,
+  Other: Brush,
+};
 
 export default function Home() {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
   const [profilePicPath, setProfilePicPath] = useState<string | null>(null);
+  const [skills, setSkills] = useState<Skill[]>(DEFAULT_SKILLS);
 
   useEffect(() => {
     const saved = localStorage.getItem(PROFILE_PIC_KEY);
     if (saved) setProfilePicPath(saved);
+    setSkills(loadSkills());
+
     const onStorage = (e: StorageEvent) => {
       if (e.key === PROFILE_PIC_KEY) setProfilePicPath(e.newValue);
+      if (e.key === SKILLS_KEY) {
+        try {
+          if (e.newValue) setSkills(JSON.parse(e.newValue));
+        } catch {}
+      }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -272,37 +313,49 @@ export default function Home() {
       {/* Skills Section */}
       <section id="skills" className="py-32 bg-secondary/30 relative">
         <div className="container mx-auto px-6 max-w-6xl">
-          <motion.h2
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-serif text-center mb-16 text-primary"
+            className="text-center mb-16"
           >
-            Toolkit
-          </motion.h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            {[
-              { name: "Photoshop", icon: Camera, label: "Ps" },
-              { name: "Clip Studio Paint", icon: PenTool, label: "Cs" },
-              { name: "After Effects", icon: Layers, label: "Ae" },
-              { name: "Illustrator", icon: Wand2, label: "Ai" },
-              { name: "Procreate", icon: Brush, label: "Pr" },
-            ].map((skill, index) => (
-              <motion.div
-                key={skill.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10, borderColor: "hsl(var(--primary))" }}
-                className="flex flex-col items-center justify-center p-8 bg-card rounded-xl border border-border/50 shadow-lg transition-all duration-300"
-                data-testid={`skill-card-${index}`}
-              >
-                <skill.icon className="w-12 h-12 mb-4 text-primary/80 transition-colors" />
-                <span className="text-sm font-medium text-center">{skill.name}</span>
-              </motion.div>
-            ))}
-          </div>
+            <h2 className="text-4xl md:text-5xl font-serif text-primary">Toolkit</h2>
+            <p className="mt-3 text-sm text-muted-foreground/60 uppercase tracking-widest">Tools & Software</p>
+          </motion.div>
+
+          {skills.length === 0 ? (
+            <p className="text-center text-muted-foreground text-sm">No skills added yet.</p>
+          ) : (
+            <div className={`grid gap-5 ${skills.length <= 3 ? "grid-cols-1 sm:grid-cols-3 max-w-2xl mx-auto" : skills.length === 4 ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"}`}>
+              {skills.map((skill, index) => {
+                const Icon = CATEGORY_ICONS[skill.category] ?? Brush;
+                return (
+                  <motion.div
+                    key={skill.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.08 }}
+                    whileHover={{ y: -8 }}
+                    className="group flex flex-col items-center justify-center gap-3 p-7 bg-card rounded-2xl border border-border/40 shadow-md hover:border-primary/50 hover:shadow-primary/5 transition-all duration-300"
+                    data-testid={`skill-card-${index}`}
+                  >
+                    <div className="relative">
+                      <div className="absolute inset-0 rounded-full bg-primary/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative w-14 h-14 rounded-2xl bg-secondary/60 border border-border/30 flex items-center justify-center group-hover:border-primary/30 transition-colors">
+                        <span className="font-mono font-bold text-lg text-primary/70 group-hover:text-primary transition-colors">{skill.label || skill.name.slice(0, 2)}</span>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-sm font-medium block">{skill.name}</span>
+                      <span className="text-xs text-muted-foreground/50 mt-0.5 block">{skill.category}</span>
+                    </div>
+                    <Icon className="w-4 h-4 text-primary/30 group-hover:text-primary/60 transition-colors" />
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
