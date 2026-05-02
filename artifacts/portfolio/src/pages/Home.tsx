@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { PenTool, Mail, Phone, Facebook, Instagram, Layers, Brush, Wand2, Camera, Play, CheckCircle, Clock, Send, Menu, X, Settings } from "lucide-react";
+import { PenTool, Mail, Phone, Facebook, Instagram, Layers, Brush, Wand2, Camera, Play, CheckCircle, Clock, Send, Menu, X, Settings, User } from "lucide-react";
 import { Link } from "wouter";
 import coverImg from "@assets/WhatsApp_Image_2026-05-02_at_11.15.25_PM_1777752987759.jpeg";
 import resumeImg from "@assets/WhatsApp_Image_2026-05-02_at_11.15.25_PM_(1)_1777752987758.jpeg";
@@ -204,13 +204,51 @@ export default function Home() {
               </div>
             </motion.div>
             <motion.div initial={{ opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.8 }}
-              className="relative order-1 lg:order-2">
-              <div className="absolute -inset-3 md:-inset-4 bg-primary/10 rounded-2xl blur-2xl z-0" />
-              <img
-                src={profilePicPath ? `/api/storage${profilePicPath}` : resumeImg}
-                alt={hero.name} className="relative z-10 rounded-xl shadow-2xl border border-border/50 w-full object-cover max-h-[480px] lg:max-h-none"
-                data-testid="about-profile-image" />
+              viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.9 }}
+              className="relative order-1 lg:order-2 flex items-center justify-center">
+              {/* Ambient glow */}
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl scale-110 z-0" />
+              {/* Slow-spinning decorative ring */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+                className="absolute w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] lg:w-[420px] lg:h-[420px] rounded-full border border-primary/20 border-dashed z-10"
+              />
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 42, repeat: Infinity, ease: "linear" }}
+                className="absolute w-[280px] h-[280px] sm:w-[336px] sm:h-[336px] lg:w-[372px] lg:h-[372px] rounded-full border border-primary/10 z-10"
+              />
+              {/* Bokeh dots */}
+              {[
+                { top: "8%",  left: "18%",  size: 6,  delay: 0 },
+                { top: "20%", right: "12%", size: 4,  delay: 0.6 },
+                { bottom: "14%", left: "10%", size: 5, delay: 1.2 },
+                { bottom: "8%", right: "20%", size: 3, delay: 0.3 },
+              ].map((dot, i) => (
+                <motion.div key={i}
+                  style={{ position: "absolute", top: dot.top, left: dot.left, right: dot.right, bottom: dot.bottom,
+                           width: dot.size, height: dot.size }}
+                  animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.4, 1] }}
+                  transition={{ duration: 3 + i * 0.5, repeat: Infinity, delay: dot.delay, ease: "easeInOut" }}
+                  className="rounded-full bg-primary z-10"
+                />
+              ))}
+              {/* Profile circle */}
+              <div className="relative z-20 w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full overflow-hidden
+                              ring-2 ring-primary/40 ring-offset-4 ring-offset-background shadow-2xl"
+                   data-testid="about-profile-image">
+                {profilePicPath ? (
+                  <img src={`/api/storage${profilePicPath}`} alt={hero.name}
+                       className="w-full h-full object-cover object-top" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 via-background to-primary/5
+                                  flex flex-col items-center justify-center gap-3">
+                    <User className="w-16 h-16 text-primary/40" strokeWidth={1.2} />
+                    <span className="text-xs text-muted-foreground/50 tracking-widest uppercase">Add photo</span>
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
         </div>
