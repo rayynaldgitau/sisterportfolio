@@ -1,13 +1,13 @@
 import { useState, useCallback } from "react";
 import type { UppyFile } from "@uppy/core";
 
-interface UploadMetadata {
+export interface UploadMetadata {
   name: string;
   size: number;
   contentType: string;
 }
 
-interface UploadResponse {
+export interface UploadResponse {
   uploadURL: string;
   objectPath: string;
   metadata: UploadMetadata;

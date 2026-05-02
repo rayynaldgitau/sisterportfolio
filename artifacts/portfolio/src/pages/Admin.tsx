@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useUpload } from "@workspace/object-storage-web";
+import { useUpload, type UploadResponse } from "@workspace/object-storage-web";
 import {
   Upload, CheckCircle, AlertCircle, ArrowLeft, Image, Plus, X,
   GripVertical, Save, Eye, EyeOff, Lock, ChevronDown, ChevronUp, LogOut
@@ -139,7 +139,7 @@ function ProfilePicSection() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, isUploading, error, progress } = useUpload({
-    onSuccess: (response) => {
+    onSuccess: (response: UploadResponse) => {
       save(KEYS.PROFILE_PIC, response.objectPath);
       setProfilePicPath(response.objectPath);
       setUploadSuccess(true);
@@ -372,7 +372,7 @@ function WorkItemCard({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const { uploadFile, isUploading, progress, error } = useUpload({
-    onSuccess: (res) => onChange({ ...work, imageObjectPath: res.objectPath }),
+    onSuccess: (res: UploadResponse) => onChange({ ...work, imageObjectPath: res.objectPath }),
   });
 
   const imageUrl = work.imageObjectPath ? `/api/storage${work.imageObjectPath}` : null;
