@@ -220,23 +220,138 @@ function AboutSection() {
 }
 
 /* ─── Reel ──────────────────────────────────────────────────────────── */
+type ReelPlatform = "youtube" | "vimeo" | "unknown" | "empty";
+
+function detectPlatform(raw: string): ReelPlatform {
+  if (!raw.trim()) return "empty";
+  if (/youtu\.?be/i.test(raw)) return "youtube";
+  if (/vimeo\.com/i.test(raw)) return "vimeo";
+  return "unknown";
+}
+
+function toEmbedUrl(raw: string): string {
+  const s = raw.trim();
+  if (!s) return "";
+
+  // Already an embed URL — return as-is
+  if (/youtube\.com\/embed\//i.test(s)) return s;
+  if (/player\.vimeo\.com\/video\//i.test(s)) return s;
+
+  // YouTube: watch?v=ID or youtu.be/ID or /shorts/ID
+  const ytWatch = s.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (ytWatch) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+
+  const ytShort = s.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (ytShort) return `https://www.youtube.com/embed/${ytShort[1]}`;
+
+  const ytShorts = s.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+  if (ytShorts) return `https://www.youtube.com/embed/${ytShorts[1]}`;
+
+  // Vimeo: vimeo.com/ID or vimeo.com/channels/.../ID
+  const vimeo = s.match(/vimeo\.com\/(?:.*\/)?(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+
+  return s; // return as-is if unrecognised
+}
+
+const PLATFORM_BADGE: Record<ReelPlatform, { label: string; color: string } | null> = {
+  youtube:  { label: "YouTube",  color: "bg-red-500/15 text-red-400 border-red-500/20" },
+  vimeo:    { label: "Vimeo",    color: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
+  unknown:  { label: "Custom",   color: "bg-primary/10 text-primary border-primary/20" },
+  empty:    null,
+};
+
 function ReelSection() {
-  const [url, setUrl] = useState(() => load<string>(KEYS.REEL_URL, DEFAULTS.REEL_URL));
+  // Store the raw user-typed URL; convert only for preview/save
+  const [rawUrl, setRawUrl] = useState(() => {
+    // If a saved embed URL exists, display it as-is in the field
+    return load<string>(KEYS.REEL_URL, DEFAULTS.REEL_URL);
+  });
   const { saved, flash } = useSaved();
-  const handleSave = () => { save(KEYS.REEL_URL, url); flash(); };
+
+  const platform = detectPlatform(rawUrl);
+  const embedUrl = toEmbedUrl(rawUrl);
+  const badge = PLATFORM_BADGE[platform];
+
+  const handleSave = () => {
+    save(KEYS.REEL_URL, embedUrl);
+    flash();
+  };
+
+  const handleClear = () => {
+    setRawUrl("");
+    save(KEYS.REEL_URL, "");
+    flash();
+  };
+
   return (
     <SectionCard title="Show Reel">
-      <p className="text-sm text-muted-foreground -mt-1">Paste a YouTube embed URL. Leave blank to show the placeholder.</p>
-      <label className="block">
-        <span className="text-xs text-muted-foreground uppercase tracking-widest mb-1.5 block">YouTube Embed URL</span>
-        <input value={url} onChange={(e) => setUrl(e.target.value)}
-          className="field" placeholder="https://www.youtube.com/embed/VIDEO_ID" data-testid="reel-url" />
-      </label>
-      {url && (
-        <div className="aspect-video rounded-xl overflow-hidden border border-border/30">
-          <iframe src={url} className="w-full h-full" title="Show Reel Preview" allowFullScreen />
+      <p className="text-sm text-muted-foreground -mt-1">
+        Paste any YouTube or Vimeo link — regular, short, or embed format. Leave blank to show the animated placeholder.
+      </p>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground uppercase tracking-widest">Video Link</span>
+          {badge && (
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${badge.color}`}>
+              {badge.label} detected
+            </span>
+          )}
+        </div>
+        <div className="relative">
+          <input
+            value={rawUrl}
+            onChange={(e) => setRawUrl(e.target.value)}
+            className="field pr-16"
+            placeholder="https://www.youtube.com/watch?v=… or https://vimeo.com/…"
+            data-testid="reel-url"
+          />
+          {rawUrl && (
+            <button
+              onClick={handleClear}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/50 hover:text-red-400 transition-colors"
+              title="Clear"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {/* Supported format hints */}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground/40">
+          <span>youtube.com/watch?v=…</span>
+          <span>youtu.be/…</span>
+          <span>youtube.com/shorts/…</span>
+          <span>vimeo.com/…</span>
+        </div>
+      </div>
+
+      {/* Live preview */}
+      {embedUrl ? (
+        <div className="space-y-2">
+          <span className="text-xs text-muted-foreground uppercase tracking-widest">Preview</span>
+          <div className="aspect-video rounded-xl overflow-hidden border border-border/30 bg-black">
+            <iframe
+              key={embedUrl}
+              src={embedUrl}
+              className="w-full h-full"
+              title="Show Reel Preview"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              data-testid="reel-preview-iframe"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground/40 break-all">
+            Embed URL: {embedUrl}
+          </p>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center rounded-xl border border-dashed border-border/30 aspect-video text-sm text-muted-foreground/40">
+          Preview will appear here after you paste a link
         </div>
       )}
+
       <SaveRow onSave={handleSave} saved={saved} />
     </SectionCard>
   );
