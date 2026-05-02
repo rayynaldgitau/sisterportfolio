@@ -110,10 +110,84 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
 /* ─── Hero ─────────────────────────────────────────────────────────── */
 function HeroSection() {
   const [data, setData] = useState<HeroData>(() => load(KEYS.HERO, DEFAULTS.HERO));
+  const [bgPath, setBgPath] = useState<string | null>(() => load<string | null>(KEYS.HERO_BG, null));
+  const bgFileRef = useRef<HTMLInputElement>(null);
   const { saved, flash } = useSaved();
+
+  const { uploadFile: uploadBg, isUploading: bgUploading, progress: bgProgress, error: bgError } = useUpload({
+    onSuccess: (res: UploadResponse) => {
+      save(KEYS.HERO_BG, res.objectPath);
+      setBgPath(res.objectPath);
+    },
+  });
+
+  const handleBgChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await uploadBg(file);
+    e.target.value = "";
+  };
+
   const handleSave = () => { save(KEYS.HERO, data); flash(); };
+
+  const bgImageUrl = bgPath ? `/api/storage${bgPath}` : null;
+
   return (
     <SectionCard title="Hero">
+      {/* Background Image */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground uppercase tracking-widest">Background Image</span>
+          {bgImageUrl && (
+            <button
+              type="button"
+              onClick={() => { save(KEYS.HERO_BG, null); setBgPath(null); }}
+              className="text-xs text-red-400/60 hover:text-red-400 transition-colors"
+            >
+              Remove (restore default)
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => bgFileRef.current?.click()}
+          disabled={bgUploading}
+          className={`relative w-full rounded-xl overflow-hidden border transition-all ${
+            bgImageUrl
+              ? "border-border/30 h-36"
+              : "border-dashed border-border/40 h-28 hover:border-primary/40 hover:bg-primary/5"
+          }`}
+        >
+          {bgImageUrl ? (
+            <>
+              <img src={bgImageUrl} alt="Hero background" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs">
+                <Upload className="w-4 h-4" /> Replace image
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground/40 h-full">
+              <Image className="w-7 h-7" />
+              <span className="text-xs">Click to upload hero background</span>
+              <span className="text-xs opacity-60">JPG, PNG, WebP — full width, landscape works best</span>
+            </div>
+          )}
+          {bgUploading && (
+            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
+              <div className="w-32 h-1.5 rounded-full bg-white/20 overflow-hidden">
+                <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${bgProgress}%` }} />
+              </div>
+              <span className="text-xs text-white/70">Uploading…</span>
+            </div>
+          )}
+        </button>
+        <input ref={bgFileRef} type="file" accept="image/*" className="hidden" onChange={handleBgChange} />
+        {bgError && <p className="text-xs text-red-400">{bgError.message}</p>}
+        {!bgImageUrl && (
+          <p className="text-xs text-muted-foreground/40">The current default dark-forest image will be used until you upload one.</p>
+        )}
+      </div>
+
+      {/* Text fields */}
       <label className="block">
         <span className="text-xs text-muted-foreground uppercase tracking-widest mb-1.5 block">Name</span>
         <input value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })}

@@ -46,6 +46,7 @@ export default function Home() {
   const experience = useStorage<ExperienceEntry[]>(KEYS.EXPERIENCE, DEFAULTS.EXPERIENCE);
   const skills = useStorage<Skill[]>(KEYS.SKILLS, DEFAULTS.SKILLS);
   const profilePicPath = useStorage<string | null>(KEYS.PROFILE_PIC, null);
+  const heroBgPath = useStorage<string | null>(KEYS.HERO_BG, null);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -107,7 +108,11 @@ export default function Home() {
         <motion.div style={{ y }} className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-background/60 z-10" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent z-10" />
-          <img src={coverImg} alt="Hero Cover" className="w-full h-full object-cover opacity-80 mix-blend-luminosity" />
+          <img
+            src={heroBgPath ? `/api/storage${heroBgPath}` : coverImg}
+            alt="Hero Cover"
+            className="w-full h-full object-cover opacity-80 mix-blend-luminosity"
+          />
         </motion.div>
         <div className="relative z-20 text-center px-5 max-w-4xl w-full">
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 0.1 }}

@@ -1,5 +1,6 @@
 export const KEYS = {
   PROFILE_PIC: "portfolio_profile_pic_path",
+  HERO_BG: "portfolio_hero_bg_path",
   SKILLS: "portfolio_skills",
   HERO: "portfolio_hero",
   ABOUT: "portfolio_about",
