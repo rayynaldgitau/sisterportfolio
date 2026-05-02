@@ -121,8 +121,8 @@ export default function Admin() {
   const profileImageSrc = profilePicPath ? `/api/storage${profilePicPath}` : null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 md:p-12">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-6 md:space-y-8">
 
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors" data-testid="back-to-portfolio">
           <ArrowLeft className="w-4 h-4" />
@@ -130,21 +130,21 @@ export default function Admin() {
         </Link>
 
         <div>
-          <h1 className="text-3xl md:text-4xl font-serif text-primary mb-1">Admin Panel</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif text-primary mb-1">Admin Panel</h1>
           <p className="text-muted-foreground text-sm">Manage your portfolio settings.</p>
         </div>
 
         {/* Profile Picture */}
-        <div className="rounded-2xl border border-border/50 bg-card p-8 shadow-lg space-y-6">
+        <div className="rounded-2xl border border-border/50 bg-card p-5 sm:p-7 shadow-lg space-y-5 sm:space-y-6">
           <div>
-            <h2 className="text-lg font-semibold mb-0.5">Profile Picture</h2>
+            <h2 className="text-base sm:text-lg font-semibold mb-0.5">Profile Picture</h2>
             <p className="text-sm text-muted-foreground">Appears in the About section.</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-8 items-start">
+          <div className="flex flex-col sm:flex-row gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
               <div
-                className="w-32 h-32 rounded-xl border-2 border-dashed border-border/60 bg-secondary/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+                className="w-28 h-28 sm:w-32 sm:h-32 rounded-xl border-2 border-dashed border-border/60 bg-secondary/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
                 data-testid="profile-pic-preview"
               >
@@ -152,16 +152,21 @@ export default function Admin() {
                   <img src={previewUrl ?? profileImageSrc!} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
                   <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
-                    <Image className="w-7 h-7 opacity-40" />
+                    <Image className="w-6 h-6 sm:w-7 sm:h-7 opacity-40" />
                     <span className="text-xs opacity-50">No photo yet</span>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 space-y-3 w-full">
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} data-testid="profile-pic-input" />
-              <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" data-testid="upload-button">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                data-testid="upload-button"
+              >
                 <Upload className="w-4 h-4" />
                 {isUploading ? "Uploading..." : "Choose Photo"}
               </button>
@@ -174,17 +179,14 @@ export default function Admin() {
                   <p className="text-xs text-muted-foreground">{progress}% uploaded</p>
                 </div>
               )}
-
               {uploadSuccess && (
                 <div className="inline-flex items-center gap-2 text-sm text-emerald-400" data-testid="upload-success">
-                  <CheckCircle className="w-4 h-4" />
-                  Profile picture updated.
+                  <CheckCircle className="w-4 h-4" />Profile picture updated.
                 </div>
               )}
               {error && (
                 <div className="inline-flex items-center gap-2 text-sm text-red-400" data-testid="upload-error">
-                  <AlertCircle className="w-4 h-4" />
-                  {error.message}
+                  <AlertCircle className="w-4 h-4" />{error.message}
                 </div>
               )}
               <p className="text-xs text-muted-foreground opacity-50">JPG, PNG, WebP — max 5MB</p>
@@ -193,15 +195,15 @@ export default function Admin() {
         </div>
 
         {/* Skills & Tools Editor */}
-        <div className="rounded-2xl border border-border/50 bg-card p-8 shadow-lg space-y-6">
-          <div className="flex items-start justify-between gap-4">
+        <div className="rounded-2xl border border-border/50 bg-card p-5 sm:p-7 shadow-lg space-y-5 sm:space-y-6">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold mb-0.5">Skills & Tools</h2>
-              <p className="text-sm text-muted-foreground">These appear in the Toolkit section of your portfolio. Drag to reorder.</p>
+              <h2 className="text-base sm:text-lg font-semibold mb-0.5">Skills & Tools</h2>
+              <p className="text-sm text-muted-foreground">Drag to reorder. Appears in the Toolkit section.</p>
             </div>
             <button
               onClick={handleSaveSkills}
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all"
+              className="shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all"
               data-testid="save-skills-button"
             >
               <Save className="w-3.5 h-3.5" />
@@ -224,7 +226,7 @@ export default function Admin() {
                 onDragEnter={() => handleDragEnter(index)}
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => e.preventDefault()}
-                className={`flex items-center gap-3 p-3 rounded-xl border bg-secondary/20 transition-all ${
+                className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl border bg-secondary/20 transition-all ${
                   dragOverIndex === index && dragIndex !== index ? "border-primary/50 bg-primary/5" : "border-border/30"
                 }`}
                 data-testid={`skill-row-${index}`}
@@ -244,10 +246,10 @@ export default function Admin() {
                   type="text"
                   value={skill.label}
                   onChange={(e) => handleEditSkill(skill.id, "label", e.target.value.slice(0, 3))}
-                  className="w-10 bg-secondary/50 rounded-md text-xs text-center font-mono px-1 py-1 border border-border/30 focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-9 sm:w-10 bg-secondary/50 rounded-md text-xs text-center font-mono px-1 py-1 border border-border/30 focus:outline-none focus:border-primary/50 transition-colors"
                   placeholder="Ab"
                   maxLength={3}
-                  title="Short label (shown on the card)"
+                  title="Short label shown on the card"
                   data-testid={`skill-label-${index}`}
                 />
 
@@ -274,45 +276,49 @@ export default function Admin() {
           {/* Add New Skill */}
           <div className="pt-4 border-t border-border/30 space-y-3">
             <p className="text-xs uppercase tracking-widest text-muted-foreground/60">Add a skill</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => { setNewName(e.target.value); setAddError(""); }}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAddSkill(); }}
-                placeholder="e.g. Blender, Toon Boom..."
-                className="flex-1 bg-secondary/30 border border-border/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary/50 transition-colors placeholder:text-muted-foreground/40"
-                data-testid="new-skill-name"
-              />
-              <input
-                type="text"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value.slice(0, 3))}
-                placeholder="Label"
-                maxLength={3}
-                title="Short abbreviation shown on the card (auto-generated if empty)"
-                className="w-full sm:w-20 bg-secondary/30 border border-border/40 rounded-xl px-3 py-2.5 text-sm text-center font-mono focus:outline-none focus:border-primary/50 transition-colors placeholder:text-muted-foreground/40"
-                data-testid="new-skill-label"
-              />
-              <select
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                className="w-full sm:w-32 bg-secondary/30 border border-border/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary/50 transition-colors text-muted-foreground"
-                data-testid="new-skill-category"
-              >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <button
-                onClick={handleAddSkill}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/30 text-primary text-sm font-medium hover:bg-primary/20 transition-all"
-                data-testid="add-skill-button"
-              >
-                <Plus className="w-4 h-4" />
-                Add
-              </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => { setNewName(e.target.value); setAddError(""); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleAddSkill(); }}
+                  placeholder="e.g. Blender, Toon Boom..."
+                  className="flex-1 min-w-0 bg-secondary/30 border border-border/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary/50 transition-colors placeholder:text-muted-foreground/40"
+                  data-testid="new-skill-name"
+                />
+                <input
+                  type="text"
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value.slice(0, 3))}
+                  placeholder="Lbl"
+                  maxLength={3}
+                  title="Short abbreviation (auto-generated if empty)"
+                  className="w-16 bg-secondary/30 border border-border/40 rounded-xl px-2 py-2.5 text-sm text-center font-mono focus:outline-none focus:border-primary/50 transition-colors placeholder:text-muted-foreground/40"
+                  data-testid="new-skill-label"
+                />
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="flex-1 bg-secondary/30 border border-border/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary/50 transition-colors text-muted-foreground"
+                  data-testid="new-skill-category"
+                >
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <button
+                  onClick={handleAddSkill}
+                  className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary/10 border border-primary/30 text-primary text-sm font-medium hover:bg-primary/20 transition-all"
+                  data-testid="add-skill-button"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add
+                </button>
+              </div>
             </div>
             {addError && <p className="text-xs text-red-400" data-testid="add-skill-error">{addError}</p>}
-            <p className="text-xs text-muted-foreground/40">Press Enter or click Add. Click Save above to apply changes to the portfolio.</p>
+            <p className="text-xs text-muted-foreground/40">Press Enter or click Add. Hit Save to apply changes to the portfolio.</p>
           </div>
         </div>
 
